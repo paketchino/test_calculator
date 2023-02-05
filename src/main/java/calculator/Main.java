@@ -1,128 +1,101 @@
 package calculator;
 
 import calculator.enumValue.Operation;
-import calculator.enumValue.RomanEnum;
+import calculator.enumValue.Roman;
 import calculator.exception.MyException;
 
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Main {
 
-	public static String calculator(String input) throws Exception {
-		int op1 = 0, op2 = 0, result = 0;
-		String[] arr = reg(input);
-
-		if (arr[3] != null) {
-			if(romToAr(arr[3]) - romToAr(arr[5]) < 1 && arr[4].equals("-")) {
-				throw new MyException(new IllegalAccessException("В римском алфавите отсутствуют отрицательные числа"));
+	public static String calc(String input) throws MyException {
+		String result = null;
+		int val1 = 0; int val2 = 0;
+		int rom1 = 0; int rom2 = 0; int exs = 0;
+		String[] array = input.split(" ");
+		if (array.length <= 1) {
+			throw new MyException(new IllegalStateException("строка не является математической операцией"));
+		} else if (array.length > 3) {
+			throw new MyException("формат математической операции не удовлетворяет заданию - два операнда и один оператор (+, -, /, *)");
+		}
+		if (array[0].contains("I") || array[0].contains("V") || array[0].contains("X")
+				&& array[2].contains("I") || array[2].contains("V") || array[2].contains("X")) {
+			rom1 = romanToArabic(array[0]); rom2 = romanToArabic(array[2]);
+			if (rom2 < 0 || rom1 < 0) throw new MyException("используются одновременно разные системы счисления");
+			if (array[1].contains("-")) {
+				exs = Operation.SUBTRACT.action(rom1, rom2);
+				if (exs < 0) {
+					throw new MyException(("в римской системе нет отрицательных чисел"));
+				}
+				return arabicToRoman(exs);
+			} else if (array[1].contains("*")) {
+				exs = Operation.MULTI.action(rom1, rom2);
+				return arabicToRoman(exs);
+			} else if (array[1].contains("/")) {
+				exs = Operation.DIVIDE.action(rom1, rom2);
+				return arabicToRoman(exs);
+			} else if (array[1].contains("+")) {
+				exs = Operation.ADDING.action(rom1, rom2);
+				return arabicToRoman(exs);
 			}
 		}
-		if (arr[0] != null) {
-			op1 = Integer.parseInt(arr[0]);
+		if (array[2].contains("I")
+				|| array[2].contains("X")
+				|| array[2].contains("V")) { throw new MyException("используются одновременно разные системы счисления");
 		}
-		if (arr[2] != null) {
-			op2 = Integer.parseInt(arr[2]);
+		val1 = Integer.parseInt(array[0]);
+		val2 = Integer.parseInt(array[2]);
+		if (val1 >= 11  || val2 >= 11) {
+			throw new MyException("Вы можете ввести только значение от 1 до 10");
 		}
-		if (arr[3] != null) {
-			op1 = romToAr(arr[3]);
-		}
-		if (arr[5] != null) {
-			op2 = romToAr(arr[5]);
-		}
-		if (arr[1] != null && arr[1].equals("+") || arr[4] != null && arr[4].equals("+")) {
-			result = Operation.SUM.action(op1, op2);
-		}
-		else if (arr[1] != null && arr[1].equals("-") || arr[4] != null && arr[4].equals("-")) {
-			result = Operation.SUBTRACT.action(op1, op2);
-		}
-		else if (arr[1] != null && arr[1].equals("*") || arr[4] != null && arr[4].equals("*")) {
-			result = Operation.MULTIPLY.action(op1, op2);
-		}
-		else if (arr[1] != null && arr[1].equals("/") || arr[4] != null && arr[4].equals("/")) {
-			result = Operation.DIVIDE.action(op1, op2);
-		}
-		if(arr[3] != null) return arabicToRoman(result);
-		return String.valueOf(result);
-	}
-
-	static String[] reg(String str) throws Exception {
-		str = str.replace(" ", "");
-		Pattern pattern = null;
-		Matcher matcher = null;
-		pattern = Pattern.compile("^([^\\+\\-\\*\\/])*$");
-		matcher = pattern.matcher(str);
-		if(matcher.find()) {
-			throw new MyException(
-					new IllegalAccessException(
-							"Единое число не является арифметической операцией или вводите неверный арифметический знак"));
-		}
-		pattern = Pattern.compile("^([1-9]|10)([\\+\\-\\*\\/]){1}(I|II|III|IV|V|VI|VII|VIII|IX|X)$"
-				+ "|^(I|II|III|IV|V|VI|VII|VIII|IX|X)([\\+\\-\\*\\/]){1}([1-9]|10)$");
-		matcher = pattern.matcher(str);
-		if(matcher.find()) throw new MyException(
-				new IllegalAccessException(
-						"Вы пытаетесь сложить арабски числа с римским")
-		);
-
-		pattern = Pattern.compile("^([1-9]|10)([\\+\\-\\*\\/]){1}([1-9]|10)$"
-		+ "|^(I|II|III|IV|V|VI|VII|VIII|IX|X)([\\+\\-\\*\\/]){1}(I|II|III|IV|V|VI|VII|VIII|IX|X)$");
-	    matcher = pattern.matcher(str);
-	    String[] arr = new String[6];
-	    if(matcher.find() == true) {
-			for (int x = 0; x < 6; x++) {
-				arr[x] = matcher.group(x + 1);
-			}
-		} else
-	    	throw new MyException(
-					new IllegalAccessException(
-							"Вы пытаетесь ввести число которое больше или меньше. Можете ввести число от 1 до 10"));
-	    matcher.start();
-	    return arr;
-	}
-
-	public static int romToAr(String roman) {
-		switch (roman) {
-			case ("I") :
-				return 1;
-			case ("II") :
-				return 2;
-			case ("III") :
-				return 3;
-			case ("IV") :
-				return 4;
-			case ("V") :
-				return 5;
-			case ("VI") :
-				return 6;
-			case("VII") :
-				return 7;
-			case("VIII") :
-				return 8;
-			case("IX") :
-				return 9;
-			case("X") :
-				return 10;
-	}
-		return -1;
+		if (array[1].contains("+")) result = String.valueOf(Operation.ADDING.action(val1, val2));
+		else if (array[1].contains("*")) result = String.valueOf(Operation.MULTI.action(val1, val2));
+		else if (array[1].contains("/")) result = String.valueOf(Operation.DIVIDE.action(val1, val2));
+		else if (array[1].contains("-")) result = String.valueOf(Operation.SUBTRACT.action(val1, val2));
+		else throw new MyException(("Вы ввели неправильный символ"));
+		return result;
 	}
 
 	public static String arabicToRoman(int number) {
-	    List<RomanEnum> romanNumerals = RomanEnum.findAllReverseSortedValues();
-
-	    int i = 0;
-	    StringBuilder sb = new StringBuilder();
-
-	    while ((number > 0) && (i < romanNumerals.size())) {
-			RomanEnum currentSymbol = romanNumerals.get(i);
-	        if (currentSymbol.getValue() <= number) {
-	            sb.append(currentSymbol.name());
-	            number -= currentSymbol.getValue();
-	        } else {
-	            i++;
-	        }
-	    }
-	    return sb.toString();
+		List<Roman> romanNumerals = Roman.sorted();
+		int i = 0;
+		StringBuilder sb = new StringBuilder();
+		while ((number > 0) && (i < romanNumerals.size())) {
+			Roman currentSymbol = romanNumerals.get(i);
+			if (currentSymbol.getVal() <= number) {
+				sb.append(currentSymbol.name());
+				number -= currentSymbol.getVal();
+			} else {
+				i++;
+			}
+		}
+		return sb.toString();
 	}
+
+	public static int romanToArabic(String roman) {
+		switch (roman) {
+			case "I" :
+				return 1;
+			case "II" :
+				return 2;
+			case "III" :
+				return 3;
+			case "IV" :
+				return 4;
+			case "V" :
+				return 5;
+			case "VI" :
+				return 6;
+			case "VII" :
+				return 7;
+			case "VIII" :
+				return 8;
+			case "IX" :
+				return 9;
+			case "X" :
+				return 10;
+		}
+		return -1;
+	}
+
 }
