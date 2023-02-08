@@ -5,8 +5,16 @@ import calculator.enumValue.Roman;
 import calculator.exception.MyException;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
+
+	public static void main(String[] args) throws MyException {
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("Введите два числа арабские или римские: ");
+		String number = scanner.nextLine();
+		System.out.println(calc(number));
+	}
 
 	public static String calc(String input) throws MyException {
 		String result = null;
